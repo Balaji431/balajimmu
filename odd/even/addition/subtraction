@@ -1,0 +1,24 @@
+is_odd_or_even <- function(n) {
+  if (n %% 2 == 0) {
+    return("even")
+  } else {
+    return("odd")
+  }
+}
+number <- 5
+result <- is_odd_or_even(number)
+cat(number, "is", result, "\n")
+
+
+add_numbers <- function(a, b) {
+  return(a + b)
+}
+subtract_numbers <- function(a, b) {
+  return(a - b)
+}
+num1 <- 10
+num2 <- 5
+sum_result <- add_numbers(num1, num2)
+cat("Addition of", num1, "and", num2, "is", sum_result, "\n")  
+subtract_result <- subtract_numbers(num1, num2)
+cat("Subtraction of", num1, "and", num2, "is", subtract_result, "\n") 
