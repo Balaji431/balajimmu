@@ -1,0 +1,34 @@
+#include <iostream>
+#include <string>
+
+class Person {
+public:
+    virtual void work() const = 0; // Pure virtual function
+};
+
+class Employee : public Person {
+public:
+    void work() const override {
+        std::cout << "Employee is working on tasks assigned." << std::endl;
+    }
+};
+
+class Manager : public Person {
+public:
+    void work() const override {
+        std::cout << "Manager is overseeing the team and handling projects." << std::endl;
+    }
+};
+
+int main() {
+    Employee emp;
+    Manager mgr;
+
+    std::cout << "Employee: ";
+    emp.work();
+
+    std::cout << "Manager: ";
+    mgr.work();
+
+    return 0;
+}
