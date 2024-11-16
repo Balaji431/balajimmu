@@ -1,0 +1,129 @@
+#include <stdio.h>
+#include <math.h>
+
+int binaryToDecimal(long long n) {
+    int decimal = 0, i = 0, remainder;
+    while (n != 0) {
+        remainder = n % 10;
+        decimal += remainder * pow(2, i);
+        n /= 10;
+        i++;
+    }
+    return decimal;
+}
+
+long long decimalToBinary(int n) {
+    long long binary = 0;
+    int remainder, i = 1;
+    while (n != 0) {
+        remainder = n % 2;
+        binary += remainder * i;
+        n /= 2;
+        i *= 10;
+    }
+    return binary;
+}
+
+long long binaryToOctal(long long n) {
+    int decimal = binaryToDecimal(n);
+    long long octal = 0;
+    int remainder, i = 1;
+    while (decimal != 0) {
+        remainder = decimal % 8;
+        octal += remainder * i;
+        decimal /= 8;
+        i *= 10;
+    }
+    return octal;
+}
+
+long long octalToBinary(long long n) {
+    int decimal = 0, i = 0, remainder;
+    while (n != 0) {
+        remainder = n % 10;
+        decimal += remainder * pow(8, i);
+        n /= 10;
+        i++;
+    }
+    return decimalToBinary(decimal);
+}
+
+int decimalToHexadecimal(int n) {
+    char hex[100];
+    int i = 0, remainder;
+    while (n != 0) {
+        remainder = n % 16;
+        if (remainder < 10)
+            hex[i] = remainder + 48;
+        else
+            hex[i] = remainder + 55;
+        n /= 16;
+        i++;
+    }
+    for (int j = i - 1; j >= 0; j--) {
+        printf("%c", hex[j]);
+    }
+    printf("\n");
+}
+
+int hexadecimalToDecimal(char hex[]) {
+    int length = 0, decimal = 0, base = 1;
+    while (hex[length] != '\0')
+        length++;
+    for (int i = length - 1; i >= 0; i--) {
+        if (hex[i] >= '0' && hex[i] <= '9') {
+            decimal += (hex[i] - 48) * base;
+        } else if (hex[i] >= 'A' && hex[i] <= 'F') {
+            decimal += (hex[i] - 55) * base;
+        }
+        base *= 16;
+    }
+    return decimal;
+}
+
+int main() {
+    int choice, decimal, hexadecimal;
+    long long binary, octal;
+    char hex[100];
+    
+    printf("Enter your choice:\n1. Binary to Decimal\n2. Decimal to Binary\n3. Binary to Octal\n4. Octal to Binary\n5. Decimal to Hexadecimal\n6. Hexadecimal to Decimal\n");
+    scanf("%d", &choice);
+    
+    switch(choice) {
+        case 1:
+            printf("Enter binary number: ");
+            scanf("%lld", &binary);
+            printf("Decimal: %d\n", binaryToDecimal(binary));
+            break;
+        case 2:
+            printf("Enter decimal number: ");
+            scanf("%d", &decimal);
+            printf("Binary: %lld\n", decimalToBinary(decimal));
+            break;
+        case 3:
+            printf("Enter binary number: ");
+            scanf("%lld", &binary);
+            printf("Octal: %lld\n", binaryToOctal(binary));
+            break;
+        case 4:
+            printf("Enter octal number: ");
+            scanf("%lld", &octal);
+            printf("Binary: %lld\n", octalToBinary(octal));
+            break;
+        case 5:
+            printf("Enter decimal number: ");
+            scanf("%d", &decimal);
+            printf("Hexadecimal: ");
+            decimalToHexadecimal(decimal);
+            break;
+        case 6:
+            printf("Enter hexadecimal number: ");
+            scanf("%s", hex);
+            printf("Decimal: %d\n", hexadecimalToDecimal(hex));
+            break;
+        default:
+            printf("Invalid choice\n");
+    }
+
+    return 0;
+}
