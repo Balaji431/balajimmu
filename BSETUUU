@@ -1,0 +1,638 @@
+#include <stdio.h>
+void bestFit(int blockSize[], int m, int processSize[], int n) {
+    int allocation[n]; // Stores block allocated to a process
+    for (int i = 0; i < n; i++)
+        allocation[i] = -1; // Initialize allocation array to -1 (unallocated)
+
+    // Pick each process and find the best fit block
+    for (int i = 0; i < n; i++) {
+        int bestIdx = -1;
+        for (int j = 0; j < m; j++) {
+            if (blockSize[j] >= processSize[i]) {
+                if (bestIdx == -1 || blockSize[j] < blockSize[bestIdx]) {
+                    bestIdx = j;
+                }
+            }
+        }
+
+        // If a suitable block is found, allocate it to the process
+        if (bestIdx != -1) {
+            allocation[i] = bestIdx;
+            blockSize[bestIdx] -= processSize[i]; // Reduce available memory in block
+        }
+    }
+
+    // Display allocation results
+    printf("\nProcess No.\tProcess Size\tBlock No.\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t\t%d\t\t", i + 1, processSize[i]);
+        if (allocation[i] != -1)
+            printf("%d\n", allocation[i] + 1);
+        else
+            printf("Not Allocated\n");
+    }
+}
+
+int main() {
+    int blockSize[] = {100, 500, 200, 300, 600}; // Memory block sizes
+    int processSize[] = {212, 417, 112, 426}; // Process sizes
+    int m = sizeof(blockSize) / sizeof(blockSize[0]); // Number of blocks
+    int n = sizeof(processSize) / sizeof(processSize[0]); // Number of processes
+
+    bestFit(blockSize, m, processSize, n);
+
+    return 0;
+}
+DEADLOCK ALGORIHM
+#include <stdio.h>
+
+#define MAX_PROCESSES 5
+#define MAX_RESOURCES 3
+
+void detectDeadlock(int processes[], int available[], int max[][MAX_RESOURCES], int allocation[][MAX_RESOURCES], int n, int m) {
+    int need[MAX_PROCESSES][MAX_RESOURCES];  // Need matrix
+    int finish[MAX_PROCESSES] = {0};  // Mark finished processes
+    int work[MAX_RESOURCES];  // Work array
+
+    // Calculate the Need matrix: Need[i][j] = Max[i][j] - Allocation[i][j]
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            need[i][j] = max[i][j] - allocation[i][j];
+        }
+    }
+
+    // Copy available resources to work array
+    for (int i = 0; i < m; i++) {
+        work[i] = available[i];
+    }
+
+    int count = 0;
+    while (count < n) {
+        int found = 0;
+        for (int i = 0; i < n; i++) {
+            if (finish[i] == 0) { // If the process is not finished
+                int canAllocate = 1;
+                for (int j = 0; j < m; j++) {
+                    if (need[i][j] > work[j]) {
+                        canAllocate = 0;
+                        break;
+                    }
+                }
+
+                if (canAllocate) {  // If resources can be allocated
+                    for (int j = 0; j < m; j++) {
+                        work[j] += allocation[i][j];
+                    }
+                    finish[i] = 1;  // Mark process as finished
+                    found = 1;
+                    count++;
+                }
+            }
+        }
+        if (!found) {  // If no process could be allocated, there is a deadlock
+            printf("\nSystem is in Deadlock!\n");
+            return;
+        }
+    }
+
+    printf("\nSystem is in a Safe State. No Deadlock detected.\n");
+}
+
+int main() {
+    int processes[] = {0, 1, 2, 3, 4};  // Process IDs
+    int available[MAX_RESOURCES] = {3, 3, 2};  // Available resources
+
+    int max[MAX_PROCESSES][MAX_RESOURCES] = {
+        {7, 5, 3},
+        {3, 2, 2},
+        {9, 0, 2},
+        {2, 2, 2},
+        {4, 3, 3}
+    };
+
+    int allocation[MAX_PROCESSES][MAX_RESOURCES] = {
+        {0, 1, 0},
+        {2, 0, 0},
+        {3, 0, 2},
+        {2, 1, 1},
+        {0, 0, 2}
+    };
+
+    int n = sizeof(processes) / sizeof(processes[0]);
+    int m = MAX_RESOURCES;
+
+    detectDeadlock(processes, available, max, allocation, n, m);
+
+    return 0;
+}
+
+FCFS
+#include <stdio.h>
+
+void findWaitingTime(int processes[], int n, int bt[], int wt[]) {
+    wt[0] = 0; // First process has no waiting time
+
+    for (int i = 1; i < n; i++) {
+        wt[i] = bt[i - 1] + wt[i - 1];
+    }
+}
+
+void findTurnAroundTime(int processes[], int n, int bt[], int wt[], int tat[]) {
+    for (int i = 0; i < n; i++) {
+        tat[i] = bt[i] + wt[i];
+    }
+}
+
+void findAvgTime(int processes[], int n, int bt[]) {
+    int wt[n], tat[n];
+    float total_wt = 0, total_tat = 0;
+
+    findWaitingTime(processes, n, bt, wt);
+    findTurnAroundTime(processes, n, bt, wt, tat);
+
+    printf("\nProcess\tBurst Time\tWaiting Time\tTurnaround Time\n");
+    for (int i = 0; i < n; i++) {
+        total_wt += wt[i];
+        total_tat += tat[i];
+        printf("%d\t%d\t\t%d\t\t%d\n", processes[i], bt[i], wt[i], tat[i]);
+    }
+
+    printf("\nAverage Waiting Time = %.2f", (total_wt / n));
+    printf("\nAverage Turnaround Time = %.2f\n", (total_tat / n));
+}
+
+int main() {
+    int processes[] = {1, 2, 3, 4}; // Process IDs
+    int n = sizeof(processes) / sizeof(processes[0]);
+    int burst_time[] = {5, 8, 12, 6}; // Burst times for each process
+
+    findAvgTime(processes, n, burst_time);
+
+    return 0;
+}
+
+ROUND ROBIN
+#include <stdio.h>
+
+void roundRobin(int processes[], int n, int bt[], int quantum) {
+    int wt[n], tat[n], rem_bt[n];
+    for (int i = 0; i < n; i++) 
+        rem_bt[i] = bt[i];
+
+    int t = 0;
+    while (1) {
+        int done = 1;
+        for (int i = 0; i < n; i++) {
+            if (rem_bt[i] > 0) {
+                done = 0;
+                if (rem_bt[i] > quantum) {
+                    t += quantum;
+                    rem_bt[i] -= quantum;
+                } else {
+                    t += rem_bt[i];
+                    wt[i] = t - bt[i];
+                    rem_bt[i] = 0;
+                }
+            }
+        }
+        if (done == 1)
+            break;
+    }
+
+    for (int i = 0; i < n; i++)
+        tat[i] = bt[i] + wt[i];
+
+    printf("\nProcess\tBurst Time\tWaiting Time\tTurnaround Time\n");
+    for (int i = 0; i < n; i++)
+        printf("%d\t%d\t\t%d\t\t%d\n", processes[i], bt[i], wt[i], tat[i]);
+}
+
+int main() {
+    int processes[] = {1, 2, 3, 4};
+    int burst_time[] = {10, 5, 8, 6};
+    int quantum = 3;
+    int n = sizeof(processes) / sizeof(processes[0]);
+
+    roundRobin(processes, n, burst_time, quantum);
+    return 0;
+}
+SJF
+#include <stdio.h>
+
+void sjf(int processes[], int n, int bt[]) {
+    int wt[n], tat[n], temp, i, j;
+    for (i = 0; i < n; i++) {
+        for (j = i + 1; j < n; j++) {
+            if (bt[i] > bt[j]) {
+                temp = bt[i];
+                bt[i] = bt[j];
+                bt[j] = temp;
+                temp = processes[i];
+                processes[i] = processes[j];
+                processes[j] = temp;
+            }
+        }
+    }
+
+    wt[0] = 0;
+    for (i = 1; i < n; i++)
+        wt[i] = bt[i - 1] + wt[i - 1];
+
+    for (i = 0; i < n; i++)
+        tat[i] = bt[i] + wt[i];
+
+    printf("\nProcess\tBurst Time\tWaiting Time\tTurnaround Time\n");
+    for (i = 0; i < n; i++)
+        printf("%d\t%d\t\t%d\t\t%d\n", processes[i], bt[i], wt[i], tat[i]);
+}
+
+int main() {
+    int processes[] = {1, 2, 3, 4};
+    int burst_time[] = {6, 8, 7, 3};
+    int n = sizeof(processes) / sizeof(processes[0]);
+
+    sjf(processes, n, burst_time);
+    return 0;
+}
+
+PRIORITY SCHDULING
+#include <stdio.h>
+
+void sjf(int processes[], int n, int bt[]) {
+    int wt[n], tat[n], temp, i, j;
+    for (i = 0; i < n; i++) {
+        for (j = i + 1; j < n; j++) {
+            if (bt[i] > bt[j]) {
+                temp = bt[i];
+                bt[i] = bt[j];
+                bt[j] = temp;
+                temp = processes[i];
+                processes[i] = processes[j];
+                processes[j] = temp;
+            }
+        }
+    }
+
+    wt[0] = 0;
+    for (i = 1; i < n; i++)
+        wt[i] = bt[i - 1] + wt[i - 1];
+
+    for (i = 0; i < n; i++)
+        tat[i] = bt[i] + wt[i];
+
+    printf("\nProcess\tBurst Time\tWaiting Time\tTurnaround Time\n");
+    for (i = 0; i < n; i++)
+        printf("%d\t%d\t\t%d\t\t%d\n", processes[i], bt[i], wt[i], tat[i]);
+}
+
+int main() {
+    int processes[] = {1, 2, 3, 4};
+    int burst_time[] = {6, 8, 7, 3};
+    int n = sizeof(processes) / sizeof(processes[0]);
+
+    sjf(processes, n, burst_time);
+    return 0;
+}
+FIRST FIT
+#include <stdio.h>
+
+void firstFit(int blockSize[], int m, int processSize[], int n) {
+    int allocation[n];
+    for (int i = 0; i < n; i++)
+        allocation[i] = -1;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (blockSize[j] >= processSize[i]) {
+                allocation[i] = j;
+                blockSize[j] -= processSize[i];
+                break;
+            }
+        }
+    }
+
+    printf("\nProcess No.\tProcess Size\tBlock No.\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t\t%d\t\t", i + 1, processSize[i]);
+        if (allocation[i] != -1)
+            printf("%d\n", allocation[i] + 1);
+        else
+            printf("Not Allocated\n");
+    }
+}
+
+int main() {
+    int blockSize[] = {100, 500, 200, 300, 600};
+    int processSize[] = {212, 417, 112, 426};
+    int m = sizeof(blockSize) / sizeof(blockSize[0]);
+    int n = sizeof(processSize) / sizeof(processSize[0]);
+
+    firstFit(blockSize, m, processSize, n);
+    return 0;
+}
+WORST FIT
+#include <stdio.h>
+
+void worstFit(int blockSize[], int m, int processSize[], int n) {
+    int allocation[n];
+    for (int i = 0; i < n; i++)
+        allocation[i] = -1;
+
+    for (int i = 0; i < n; i++) {
+        int worstIdx = -1;
+        for (int j = 0; j < m; j++) {
+            if (blockSize[j] >= processSize[i]) {
+                if (worstIdx == -1 || blockSize[j] > blockSize[worstIdx])
+                    worstIdx = j;
+            }
+        }
+
+        if (worstIdx != -1) {
+            allocation[i] = worstIdx;
+            blockSize[worstIdx] -= processSize[i];
+        }
+    }
+
+    printf("\nProcess No.\tProcess Size\tBlock No.\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t\t%d\t\t", i + 1, processSize[i]);
+        if (allocation[i] != -1)
+            printf("%d\n", allocation[i] + 1);
+        else
+            printf("Not Allocated\n");
+    }
+}
+
+int main() {
+    int blockSize[] = {100, 500, 200, 300, 600};
+    int processSize[] = {212, 417, 112, 426};
+    int m = sizeof(blockSize) / sizeof(blockSize[0]);
+    int n = sizeof(processSize) / sizeof(processSize[0]);
+
+    worstFit(blockSize, m, processSize, n);
+    return 0;
+}
+SINGLE LEVEL DICTIONARY
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 100
+
+struct Dictionary {
+    char key[50];
+    char value[50];
+};
+
+void insert(struct Dictionary dict[], int *size, char key[], char value[]) {
+    strcpy(dict[*size].key, key);
+    strcpy(dict[*size].value, value);
+    (*size)++;
+}
+
+void search(struct Dictionary dict[], int size, char key[]) {
+    for (int i = 0; i < size; i++) {
+        if (strcmp(dict[i].key, key) == 0) {
+            printf("Key: %s, Value: %s\n", dict[i].key, dict[i].value);
+            return;
+        }
+    }
+    printf("Key not found!\n");
+}
+
+void display(struct Dictionary dict[], int size) {
+    printf("\nDictionary Contents:\n");
+    for (int i = 0; i < size; i++) {
+        printf("%s: %s\n", dict[i].key, dict[i].value);
+    }
+}
+
+int main() {
+    struct Dictionary dict[MAX];
+    int size = 0;
+    int choice;
+    char key[50], value[50];
+
+    while (1) {
+        printf("\n1. Insert\n2. Search\n3. Display\n4. Exit\nEnter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter key: ");
+                scanf("%s", key);
+                printf("Enter value: ");
+                scanf("%s", value);
+                insert(dict, &size, key, value);
+                break;
+            case 2:
+                printf("Enter key to search: ");
+                scanf("%s", key);
+                search(dict, size, key);
+                break;
+            case 3:
+                display(dict, size);
+                break;
+            case 4:
+                return 0;
+            default:
+                printf("Invalid choice!\n");
+        }
+    }
+}
+2ND LEVEL 
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 10
+
+struct SubDictionary {
+    char subKey[50];
+    char subValue[50];
+};
+
+struct Dictionary {
+    char mainKey[50];
+    struct SubDictionary subDict[MAX];
+    int subCount;
+};
+
+void insert(struct Dictionary dict[], int *size, char mainKey[], char subKey[], char subValue[]) {
+    for (int i = 0; i < *size; i++) {
+        if (strcmp(dict[i].mainKey, mainKey) == 0) {
+            strcpy(dict[i].subDict[dict[i].subCount].subKey, subKey);
+            strcpy(dict[i].subDict[dict[i].subCount].subValue, subValue);
+            dict[i].subCount++;
+            return;
+        }
+    }
+
+    strcpy(dict[*size].mainKey, mainKey);
+    dict[*size].subCount = 0;
+    strcpy(dict[*size].subDict[dict[*size].subCount].subKey, subKey);
+    strcpy(dict[*size].subDict[dict[*size].subCount].subValue, subValue);
+    dict[*size].subCount++;
+    (*size)++;
+}
+
+void search(struct Dictionary dict[], int size, char mainKey[], char subKey[]) {
+    for (int i = 0; i < size; i++) {
+        if (strcmp(dict[i].mainKey, mainKey) == 0) {
+            for (int j = 0; j < dict[i].subCount; j++) {
+                if (strcmp(dict[i].subDict[j].subKey, subKey) == 0) {
+                    printf("Main Key: %s, Sub Key: %s, Value: %s\n", mainKey, subKey, dict[i].subDict[j].subValue);
+                    return;
+                }
+            }
+        }
+    }
+    printf("Key not found!\n");
+}
+
+void display(struct Dictionary dict[], int size) {
+    printf("\nTwo-Level Dictionary Contents:\n");
+    for (int i = 0; i < size; i++) {
+        printf("Main Key: %s\n", dict[i].mainKey);
+        for (int j = 0; j < dict[i].subCount; j++) {
+            printf("\t%s: %s\n", dict[i].subDict[j].subKey, dict[i].subDict[j].subValue);
+        }
+    }
+}
+
+int main() {
+    struct Dictionary dict[MAX];
+    int size = 0;
+    int choice;
+    char mainKey[50], subKey[50], subValue[50];
+
+    while (1) {
+        printf("\n1. Insert\n2. Search\n3. Display\n4. Exit\nEnter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter Main Key: ");
+                scanf("%s", mainKey);
+                printf("Enter Sub Key: ");
+                scanf("%s", subKey);
+                printf("Enter Value: ");
+                scanf("%s", subValue);
+                insert(dict, &size, mainKey, subKey, subValue);
+                break;
+            case 2:
+                printf("Enter Main Key: ");
+                scanf("%s", mainKey);
+                printf("Enter Sub Key: ");
+                scanf("%s", subKey);
+                search(dict, size, mainKey, subKey);
+                break;
+            case 3:
+                display(dict, size);
+                break;
+            case 4:
+                return 0;
+            default:
+                printf("Invalid choice!\n");
+        }
+    }
+}
+SCAD
+#include <stdio.h>
+#include <stdlib.h>
+
+void scan(int arr[], int size, int head, int direction, int disk_size) {
+    int seek_count = 0, distance, cur_track;
+    int left[size], right[size], left_count = 0, right_count = 0;
+
+    // Separate requests into left and right lists based on head position
+    for (int i = 0; i < size; i++) {
+        if (arr[i] < head)
+            left[left_count++] = arr[i];
+        else
+            right[right_count++] = arr[i];
+    }
+
+    // Sort left and right lists
+    for (int i = 0; i < left_count - 1; i++)
+        for (int j = 0; j < left_count - i - 1; j++)
+            if (left[j] > left[j + 1]) {
+                int temp = left[j];
+                left[j] = left[j + 1];
+                left[j + 1] = temp;
+            }
+
+    for (int i = 0; i < right_count - 1; i++)
+        for (int j = 0; j < right_count - i - 1; j++)
+            if (right[j] > right[j + 1]) {
+                int temp = right[j];
+                right[j] = right[j + 1];
+                right[j + 1] = temp;
+            }
+
+    printf("\nSequence of movement: ");
+    if (direction == 1) { // Moving right first
+        for (int i = 0; i < right_count; i++) {
+            cur_track = right[i];
+            printf("%d -> ", cur_track);
+            distance = abs(cur_track - head);
+            seek_count += distance;
+            head = cur_track;
+        }
+        // Move to the end of the disk
+        printf("%d -> ", disk_size - 1);
+        seek_count += abs((disk_size - 1) - head);
+        head = disk_size - 1;
+
+        // Move left
+        for (int i = left_count - 1; i >= 0; i--) {
+            cur_track = left[i];
+            printf("%d -> ", cur_track);
+            distance = abs(cur_track - head);
+            seek_count += distance;
+            head = cur_track;
+        }
+    } else { // Moving left first
+        for (int i = left_count - 1; i >= 0; i--) {
+            cur_track = left[i];
+            printf("%d -> ", cur_track);
+            distance = abs(cur_track - head);
+            seek_count += distance;
+            head = cur_track;
+        }
+        // Move to start of disk
+        printf("0 -> ");
+        seek_count += abs(head - 0);
+        head = 0;
+
+        // Move right
+        for (int i = 0; i < right_count; i++) {
+            cur_track = right[i];
+            printf("%d -> ", cur_track);
+            distance = abs(cur_track - head);
+            seek_count += distance;
+            head = cur_track;
+        }
+    }
+
+    printf("\nTotal Seek Count: %d\n", seek_count);
+}
+
+int main() {
+    int size, head, direction, disk_size;
+
+    printf("Enter disk size: ");
+    scanf("%d", &disk_size);
+    printf("Enter number of disk requests: ");
+    scanf("%d", &size);
+
+    int arr[size];
+    printf("Enter disk requests: ");
+    for (int i = 0; i < size; i++)
+        scanf("%d", &arr[i]);
+
+    printf("Enter initial head position: ");
+    scanf("%d", &head);
+    printf("Enter direction (1 for right, 0 for left): ");
+    scanf("%d", &direction);
+
+    scan(arr, size, head, direction, disk_size);
+    return 0;
+}
+
